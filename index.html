@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Это ты, Любовь моя</title>
+  <style>
+    @keyframes pulse {
+      0% {
+        text-shadow:
+          0 0 5px #ff004c,
+          0 0 10px #ff004c,
+          0 0 20px #ff004c,
+          0 0 40px #ff004c;
+        transform: scale(1);
+      }
+      50% {
+        text-shadow:
+          0 0 10px #ff004c,
+          0 0 20px #ff004c,
+          0 0 30px #ff004c,
+          0 0 60px #ff004c;
+        transform: scale(1.05);
+      }
+      100% {
+        text-shadow:
+          0 0 5px #ff004c,
+          0 0 10px #ff004c,
+          0 0 20px #ff004c,
+          0 0 40px #ff004c;
+        transform: scale(1);
+      }
+    }
+
+    /* Плавное появление элементов */
+    @keyframes fadeIn {
+      0% {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .top-right-text {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      z-index: 2;
+      text-align: right;
+      pointer-events: none;
+      animation: fadeIn 2s ease-out forwards;
+    }
+
+    .neon-text {
+      font-family: 'Bimbo Ballpoint', cursive;
+      font-size: 1.5em;
+      color: #ff004c;
+      white-space: nowrap;
+      animation: pulse 2s infinite;
+    }
+
+    .neon-text.date {
+      font-size: 1.2em;
+      margin-top: 0.3em;
+    }
+
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: black;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: sans-serif;
+      color: #fff;
+    }
+
+    #canvas {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+
+    .text-container {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeIn 2s ease-out forwards;
+    }
+
+    .text-love {
+      font-family: 'Bimbo Ballpoint', cursive;
+      font-size: 2em;
+      color: #ffffff;
+      text-shadow: 0 0 10px #314588, 0 0 20px #436ca1, 0 0 30px #ffffff;
+      white-space: nowrap;
+      animation: fadeIn 2s ease-out forwards;
+    }
+
+    .text-monkey {
+      font-family: 'Bimbo Ballpoint', cursive;
+      font-size: 1.33em;
+      color: #ffffff;
+      text-shadow: 0 0 8px #9b6234, 0 0 16px #4d0c0c, 0 0 24px #ffffff;
+      margin-top: 2em;
+      white-space: nowrap;
+      animation: fadeIn 2s ease-out forwards;
+    }
+
+    @font-face {
+      font-family: 'Manege Demo';
+      src: url('ManegeDemo.otf') format('opentype');
+    }
+
+    @font-face {
+      font-family: 'Bimbo Ballpoint';
+      src: url('BimboBallpoint.ttf') format('truetype');
+    }
+
+    .neon-follow {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background-color: #e3d6a1; /* неоновый бежевый цвет */
+      border-radius: 50%;
+      pointer-events: none;
+      animation: ripple 0.7s infinite;
+    }
+
+    @keyframes ripple {
+      0% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(5);
+        opacity: 0;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="top-right-text">
+    <div class="neon-text">3 month</div>
+    <div class="neon-text date">08.01.25</div>
+  </div>
+  <canvas id="canvas"></canvas>
+  <div class="text-container">
+    <div class="text-love" id="loveText">ㅤЯ верю в тебя, верю тебе и верю в нас.ㅤ</div>
+    <div class="text-monkey" id="monkeyText">ㅤБереги себя, мы увидимся.ㅤ</div>
+  </div>
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const stars = [];
+    const numStars = 1000;
+    const mouse = { x: -1000, y: -1000 };
+
+    for (let i = 0; i < numStars; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: Math.random() * 2,
+        originalX: 0,
+        originalY: 0,
+      });
+      stars[i].originalX = stars[i].x;
+      stars[i].originalY = stars[i].y;
+    }
+
+    function drawStars() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let star of stars) {
+        const dx = star.x - mouse.x;
+        const dy = star.y - mouse.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 100) {
+          const angle = Math.atan2(dy, dx);
+          const force = (100 - dist) / 10;
+          star.x += Math.cos(angle) * force;
+          star.y += Math.sin(angle) * force;
+        } else {
+          star.x += (star.originalX - star.x) * 0.01;
+          star.y += (star.originalY - star.y) * 0.01;
+        }
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+        ctx.fillStyle = "white";
+        ctx.fill();
+      }
+    }
+
+    function drawMonkey(time) {
+      const x = canvas.width / 2;
+      const y = canvas.height - 180;
+
+      ctx.beginPath();
+      ctx.arc(x, y, 40, 0, Math.PI * 2);
+      ctx.fillStyle = "brown";
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(x, y - 60, 30, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(x - 30, y - 60, 10, 0, Math.PI * 2);
+      ctx.arc(x + 30, y - 60, 10, 0, Math.PI * 2);
+      ctx.fill();
+
+      const blink = Math.sin(time / 200) > 0 ? 5 : 0.5;
+      ctx.fillStyle = "white";
+      ctx.beginPath();
+      ctx.arc(x - 10, y - 65, blink, 0, Math.PI * 2);
+      ctx.arc(x + 10, y - 65, blink, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "black";
+      ctx.beginPath();
+      ctx.arc(x - 10, y - 65, 2, 0, Math.PI * 2);
+      ctx.arc(x + 10, y - 65, 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      const chew = Math.abs(Math.sin(time / 150)) * 5;
+      ctx.strokeStyle = "black";
+      ctx.beginPath();
+      ctx.arc(x, y - 50 + chew, 10, 0, Math.PI);
+      ctx.stroke();
+
+      ctx.strokeStyle = "brown";
+      ctx.beginPath();
+      ctx.arc(x + 50, y + 10, 20, 0, Math.PI * (Math.sin(time / 500) * 0.5 + 1));
+      ctx.stroke();
+
+      ctx.fillStyle = "orange";
+      ctx.beginPath();
+      ctx.arc(x, y - 30, 8, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function animate(time) {
+      drawStars();
+      drawMonkey(time);
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    canvas.addEventListener("mousemove", function (e) {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+
+      const neonEffect = document.createElement("div");
+      neonEffect.classList.add("neon-follow");
+      neonEffect.style.left = `${e.clientX - 5}px`;
+      neonEffect.style.top = `${e.clientY - 5}px`;
+      document.body.appendChild(neonEffect);
+
+      setTimeout(() => {
+        neonEffect.remove();
+      }, 700); // Время исчезновения
+    });
+
+    const loveTextElement = document.getElementById('loveText');
+    const monkeyTextElement = document.getElementById('monkeyText');
+
+    function adjustFontSize() {
+      let fontSize = 2;
+      loveTextElement.style.fontSize = fontSize + 'em';
+      while (loveTextElement.offsetWidth > window.innerWidth * 0.8) {
+        fontSize -= 0.1;
+        loveTextElement.style.fontSize = fontSize + 'em';
+      }
+
+      monkeyTextElement.style.fontSize = fontSize / 1.5 + 'em';
+    }
+
+    adjustFontSize();
+    window.addEventListener('resize', adjustFontSize);
+  </script>
+</body>
+</html>
